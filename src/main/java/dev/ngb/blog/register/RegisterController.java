@@ -3,10 +3,9 @@ package dev.ngb.blog.register;
 import dev.ngb.blog.base.BaseController;
 import dev.ngb.blog.base.ResultResponse;
 import jakarta.servlet.http.HttpServletRequest;
-
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,7 +17,7 @@ public class RegisterController extends BaseController {
 
     @PostMapping("")
     public ResponseEntity<ResultResponse> register(
-            @Validated @RequestBody RegisterRequest registerRequest,
+            @Valid @RequestBody RegisterRequest registerRequest,
             HttpServletRequest request
     ) {
         registerService.register(registerRequest, request);
