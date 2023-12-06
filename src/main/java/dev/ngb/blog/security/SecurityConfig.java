@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @RequiredArgsConstructor
@@ -23,6 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final CORSFilter corsFilter;
     private final CustomAuthEntryPoint customAuthEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final UserDetailsService userDetailsService;
@@ -49,6 +51,7 @@ public class SecurityConfig {
         );
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(corsFilter, CorsFilter.class);
         http.exceptionHandling(exceptionHandling -> exceptionHandling
                 .authenticationEntryPoint(customAuthEntryPoint)
                 .accessDeniedHandler(customAccessDeniedHandler)
