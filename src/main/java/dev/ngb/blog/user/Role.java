@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Role {
-    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(name = "role_permission",
             schema = "blogs",
             joinColumns = @JoinColumn(name = "role_id"),

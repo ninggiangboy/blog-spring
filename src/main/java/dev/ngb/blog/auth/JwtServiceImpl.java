@@ -1,16 +1,21 @@
 package dev.ngb.blog.auth;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.ngb.blog.token.TokenProperties;
-import dev.ngb.blog.user.Role;
 import dev.ngb.blog.user.User;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import org.springframework.stereotype.Service;
-import io.jsonwebtoken.Claims;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.*;
 import java.util.function.Function;
@@ -21,18 +26,40 @@ public class JwtServiceImpl implements JwtService {
 
     private final String secretKey;
     private final long accessExpiration;
+    private final ObjectMapper objectMapper;
 
-    public JwtServiceImpl(TokenProperties tokenProperties) {
+    public JwtServiceImpl(TokenProperties tokenProperties, ObjectMapper objectMapper) {
         this.secretKey = tokenProperties.getSecretKey();
         this.accessExpiration = tokenProperties.getAccessExpiration();
+        this.objectMapper = objectMapper;
     }
 
+    @Override
     public UUID extractUserId(String token) {
         return UUID.fromString(extractClaim(token, Claims::getSubject));
     }
 
+    @Override
+    public Collection<SimpleGrantedAuthority> extractAuthorities(String token) {
+        String aut = extractClaim(token, claims -> claims.get("aut", String.class));
+
+        if (aut == null || aut.isEmpty()) {
+            return Collections.emptySet();
+        }
+        try {
+            byte[] decodedBytes = Decoders.BASE64.decode(aut);
+            String decodedAuthorities = new String(decodedBytes, StandardCharsets.UTF_8);
+            List<String> authorities = Arrays.asList(objectMapper.readValue(decodedAuthorities, String[].class));
+            return authorities.stream()
+                    .map(SimpleGrantedAuthority::new)
+                    .collect(Collectors.toSet());
+        } catch (IllegalArgumentException | JsonProcessingException e) {
+            return Collections.emptySet();
+        }
+    }
+
     public String generateToken(User user) {
-        return generateToken(getRolesClaims(user), user);
+        return generateToken(getExtraClaims(user), user);
     }
 
     private String generateToken(Map<String, Object> extraClaims, User user) {
@@ -77,9 +104,23 @@ public class JwtServiceImpl implements JwtService {
         }
     }
 
-    private Map<String, Object> getRolesClaims(User user) {
-        Set<String> roles = user.getRoles().stream().map(Role::getCode).collect(Collectors.toSet());
-        return Map.of("roles", roles);
+    private Map<String, Object> getExtraClaims(User user) {
+        Set<String> authorities = user.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
+        Map<String, Object> extraClaims = new HashMap<>();
+        try {
+            String s = objectMapper.writeValueAsString(authorities);
+            String aut = Encoders.BASE64.encode(s.getBytes());
+            extraClaims.put("aut", aut);
+            extraClaims.put("email", user.getEmail());
+            extraClaims.put("given_name", user.getFirstName());
+            extraClaims.put("family_name", user.getLastName());
+            extraClaims.put("username", user.getUsername());
+            extraClaims.put("picture", user.getProfilePicture());
+        } catch (JsonProcessingException e) {
+            return extraClaims;
+        }
+        return extraClaims;
     }
 
     private Key getSignInKey() {
