@@ -9,11 +9,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/greeting")
+@RequestMapping("${prefix.api}")
 @RequiredArgsConstructor
 public class GreetingController extends BaseController {
 
-    @GetMapping
+    @GetMapping("/greeting")
     public ResponseEntity<ResultResponse> greeting() {
         return buildResponse("Hello World!");
     }

@@ -9,13 +9,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/register")
+@RequestMapping("${prefix.api}")
 @RequiredArgsConstructor
 public class RegisterController extends BaseController {
 
     private final RegisterService registerService;
 
-    @PostMapping("")
+    @PostMapping("/register")
     public ResponseEntity<ResultResponse> register(
             @Valid @RequestBody RegisterRequest registerRequest,
             HttpServletRequest request
@@ -24,9 +24,9 @@ public class RegisterController extends BaseController {
         return buildResponse("User registered successfully, please check your email to confirm");
     }
 
-    @PutMapping("/confirm")
+    @PutMapping("/register/{token}")
     public ResponseEntity<ResultResponse> confirmEmail(
-            @RequestParam("token") String token,
+            @PathVariable("token") String token,
             HttpServletRequest request
     ) {
         registerService.confirmEmail(token, request);

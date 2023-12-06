@@ -12,13 +12,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("${prefix.api}")
 @RequiredArgsConstructor
 public class AuthController extends BaseController {
 
     private final AuthService authService;
 
-    @PostMapping("/login")
+    @PostMapping("/auth/login")
     public ResponseEntity<ResultResponse> authenticate(
             @Valid @RequestBody AuthRequest authRequest,
             HttpServletRequest request
@@ -27,7 +27,7 @@ public class AuthController extends BaseController {
         return buildResponse("Login successfully", authResponse);
     }
 
-    @GetMapping("/refresh")
+    @GetMapping("/auth/refresh")
     public ResponseEntity<ResultResponse> refreshToken(
             @RequestParam("refresh_token") String refreshToken,
             HttpServletRequest request
@@ -36,7 +36,7 @@ public class AuthController extends BaseController {
         return buildResponse("Refresh token successfully", authResponse);
     }
 
-    @DeleteMapping("/logout")
+    @DeleteMapping("/auth/logout")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ResultResponse> logout(
             @RequestParam("refresh_token") String refreshToken
@@ -45,7 +45,7 @@ public class AuthController extends BaseController {
         return buildResponse("Logout successfully");
     }
 
-    @DeleteMapping("/logout-all")
+    @DeleteMapping("/auth/logout-all")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ResultResponse> logoutAll(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
