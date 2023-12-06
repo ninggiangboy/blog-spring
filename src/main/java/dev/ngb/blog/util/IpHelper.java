@@ -37,6 +37,15 @@ public class IpHelper {
         return ipAddress;
     }
 
+    public static String getRealAddress(String ip) {
+        try {
+            CityResponse city = dbReader.city(InetAddress.getByName(ip));
+            return city.getCity().getName() + ", " + city.getCountry().getName();
+        } catch (IOException | GeoIp2Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static boolean isSameLocation(HttpServletRequest request, String oldIp) {
         String newIp = getIpAddress(request);
         if (newIp.equals(oldIp)) return true;
