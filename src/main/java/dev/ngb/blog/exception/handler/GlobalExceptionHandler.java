@@ -1,21 +1,26 @@
 package dev.ngb.blog.exception.handler;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.ngb.blog.exception.*;
+import dev.ngb.blog.exception.handler.ValidationErrorResponse.ValidationError;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,30 +49,62 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(StorageException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleFileException(FileException e, HttpServletRequest request) {
+    public ErrorResponse handleFileException(Exception e, HttpServletRequest request) {
         return buildErrorResponse(e, request, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleValidationException(MethodArgumentNotValidException e, HttpServletRequest request) {
-        Map<String, String> errors = new HashMap<>();
+    public ValidationErrorResponse handleValidationException(MethodArgumentNotValidException e, HttpServletRequest request) {
+        Map<String, List<String>> groupedErrors = new HashMap<>();
+        Object targetObject = e.getBindingResult().getTarget();
         e.getBindingResult().getFieldErrors().forEach(
-                error -> errors.put(
-                        error.getField(),
-                        error.getDefaultMessage()
-                )
+                error -> {
+                    String fieldName = resolveFieldName(error.getField(), targetObject);
+                    groupedErrors.computeIfAbsent(fieldName, key -> new ArrayList<>()).add(error.getDefaultMessage());
+                }
         );
-        String message = errors.toString();
-        return buildErrorResponse(new RuntimeException(message), request, HttpStatus.BAD_REQUEST);
+        List<ValidationError> errors = new ArrayList<>();
+        groupedErrors.forEach((key, value) ->
+                errors.add(ValidationError.builder()
+                        .field(key)
+                        .messages(value)
+                        .build())
+        );
+        return ValidationErrorResponse.builder()
+                .message("Invalid form data")
+                .path(request.getRequestURI())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .errors(errors)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    private String resolveFieldName(String fieldName, Object targetObject) {
+        try {
+            if (targetObject == null) {
+                return fieldName;
+            }
+            Field field = targetObject.getClass().getDeclaredField(fieldName);
+            JsonProperty jsonPropertyAnnotation = field.getAnnotation(JsonProperty.class);
+            if (jsonPropertyAnnotation != null) {
+                return jsonPropertyAnnotation.value();
+            }
+        } catch (NoSuchFieldException e) {
+            return fieldName;
+        }
+        return fieldName;
     }
 
     @ExceptionHandler({
             FileException.class,
             InvalidMediaTypeException.class,
-            NotEnoughException.class})
+            HttpMessageNotReadableException.class,
+            MissingServletRequestParameterException.class,
+            NotEnoughException.class
+    })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleStorageException(FileException e, HttpServletRequest request) {
+    public ErrorResponse handleStorageException(Exception e, HttpServletRequest request) {
         return buildErrorResponse(e, request, HttpStatus.BAD_REQUEST);
     }
 
