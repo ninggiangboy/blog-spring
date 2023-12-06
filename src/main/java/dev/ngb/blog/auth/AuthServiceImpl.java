@@ -11,8 +11,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,13 +28,11 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponse login(AuthRequest authRequest, HttpServletRequest request) {
-        authenticationManager.authenticate(
+        Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         authRequest.getUsername(),
                         authRequest.getPassword()));
-        String username = authRequest.getUsername();
-        User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(
-                () -> new BadCredentialsException(String.format("User %s not found", username)));
+        User user = (User) authentication.getPrincipal();
         String jwtToken = jwtService.generateToken(user);
         String refreshToken = tokenService.generateRefreshToken(user, request);
         return AuthResponse.builder()
