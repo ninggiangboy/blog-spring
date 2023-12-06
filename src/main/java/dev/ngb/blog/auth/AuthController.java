@@ -4,13 +4,12 @@ import dev.ngb.blog.base.BaseController;
 import dev.ngb.blog.base.ResultResponse;
 import dev.ngb.blog.user.User;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/auth")
