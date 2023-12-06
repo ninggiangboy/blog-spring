@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JpaBuddyIdeaProjectConfig" newRepositoryParent="org.springframework.data.jpa.repository.JpaRepository">
+    <option name="defaultUnitInitialized" value="true" />
+    <option name="renamerInitialized" value="true" />
+    <option name="sourceModelValue" value="Default" />
+    <option name="targetDbValue" value="123a6749-336d-48d7-ae26-ec5b98f0592c" />
+    <option name="isSnapshotDb" value="false" />
+    <option name="snapshotModelValue" value="Default" />
+    <option name="reverseEngineeringLastDbConnectionId" value="123a6749-336d-48d7-ae26-ec5b98f0592c__blog-database_blogs" />
+    <option name="reLastEntityCreationPackage" value="src/main/java/dev/ngb/blog/auth" />
+  </component>
+</project>

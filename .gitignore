@@ -1,0 +1,8 @@
+HELP.md
+target/
+.env
+logging/**
+geo/**
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/

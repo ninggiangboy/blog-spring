@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  postgres:
+    container_name: postgres_sql
+    image: postgres:16.0
+    restart: always
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=${DB_USERNAME}
+    ports:
+      - ${DB_PORT}:5432
+  redis:
+    container_name: redis_cache
+    image: redis:7.2.3
+    restart: always
+    ports:
+      - ${RD_PORT}:6379
