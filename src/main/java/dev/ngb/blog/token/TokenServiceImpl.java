@@ -64,11 +64,7 @@ public class TokenServiceImpl implements TokenService {
         String keyPattern = String.format(KEY_PATTERN, TokenType.REFRESH, user.getId().toString(), "*");
         Set<String> refreshTokens = redisTemplate.keys(keyPattern);
         if (refreshTokens != null && !refreshTokens.isEmpty()) {
-            refreshTokens.forEach(key -> {
-                if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
-                    redisTemplate.delete(key);
-                }
-            });
+            refreshTokens.forEach(redisTemplate::delete);
         }
     }
 
