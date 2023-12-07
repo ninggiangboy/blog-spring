@@ -45,7 +45,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public AuthResponse refreshToken(String refreshToken, HttpServletRequest request) {
         TokenInfo token = tokenService.getTokenInfo(refreshToken, TokenType.REFRESH);
-        if (!IpHelper.isSameLocation(request, token.getIpAddress())) {
+        if (!IpHelper.isSameLocation(IpHelper.getIpAddress(request), token.getIpAddress())) {
             throw new AccessDeniedException("Your location is not allowed to refresh token");
         }
         User user = userRepository.findById(token.getUserId()).orElseThrow(() -> new NotFoundException("User not found"));

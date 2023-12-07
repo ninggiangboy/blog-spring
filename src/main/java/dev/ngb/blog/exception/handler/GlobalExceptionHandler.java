@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(StorageException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleFileException(Exception e, HttpServletRequest request) {
+    public ErrorResponse handleStorageException(Exception e, HttpServletRequest request) {
         return buildErrorResponse(e, request, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -104,7 +104,7 @@ public class GlobalExceptionHandler {
             NotEnoughException.class
     })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleStorageException(Exception e, HttpServletRequest request) {
+    public ErrorResponse handleFileException(Exception e, HttpServletRequest request) {
         return buildErrorResponse(e, request, HttpStatus.BAD_REQUEST);
     }
 

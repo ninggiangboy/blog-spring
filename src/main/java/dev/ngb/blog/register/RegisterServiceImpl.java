@@ -46,7 +46,7 @@ public class RegisterServiceImpl implements RegisterService {
     @Override
     public void confirmEmail(String confirmToken, HttpServletRequest request) {
         TokenInfo token = tokenService.getTokenInfo(confirmToken, TokenType.VERIFIED);
-        if (!IpHelper.isSameLocation(request, token.getIpAddress())) {
+        if (!IpHelper.isSameLocation(IpHelper.getIpAddress(request), token.getIpAddress())) {
             throw new AccessDeniedException("Your location is not allowed to refresh token");
         }
         User user = userRepository.findById(token.getUserId()).orElseThrow(() -> new NotFoundException("User not found"));

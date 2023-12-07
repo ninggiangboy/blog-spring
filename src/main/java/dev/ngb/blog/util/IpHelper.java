@@ -3,6 +3,8 @@ package dev.ngb.blog.util;
 import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.maxmind.geoip2.model.CityResponse;
+import dev.ngb.blog.exception.FileException;
+import dev.ngb.blog.exception.NotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -20,41 +22,35 @@ public class IpHelper {
         try {
             dbReader = new DatabaseReader.Builder(database).build();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new FileException("GeoLite2-City.mmdb not found");
         }
     }
 
     public static String getIpAddress(HttpServletRequest request) {
-        String ipAddress;
-        try {
-            ipAddress = request.getHeader("X-FORWARDED-FOR");
-            if (ipAddress == null) {
-                ipAddress = request.getRemoteAddr();
-            }
-        } catch (Exception e) {
-            ipAddress = "Invalid IP:" + e.getMessage();
+        String forwarded = request.getHeader("X-FORWARDED-FOR");
+        if (forwarded != null) {
+            return "Invalid IP";
         }
-        return ipAddress;
+        return request.getRemoteAddr();
     }
 
-    public static String getRealAddress(String ip) {
+    public static String getRealCityAddress(String ip) {
         try {
             CityResponse city = dbReader.city(InetAddress.getByName(ip));
             return city.getCity().getName() + ", " + city.getCountry().getName();
         } catch (IOException | GeoIp2Exception e) {
-            throw new RuntimeException(e);
+            throw new NotFoundException("Address not found for IP: " + ip);
         }
     }
 
-    public static boolean isSameLocation(HttpServletRequest request, String oldIp) {
-        String newIp = getIpAddress(request);
+    public static boolean isSameLocation(String newIp, String oldIp) {
         if (newIp.equals(oldIp)) return true;
         try {
             CityResponse oldCity = dbReader.city(InetAddress.getByName(oldIp));
             CityResponse newCity = dbReader.city(InetAddress.getByName(newIp));
             return isSameCity(oldCity, newCity);
         } catch (IOException | GeoIp2Exception e) {
-            throw new RuntimeException(e);
+            throw new NotFoundException("Address not found for IP: " + oldIp + " or " + newIp);
         }
     }
 
