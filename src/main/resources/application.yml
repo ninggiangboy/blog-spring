@@ -14,7 +14,7 @@ spring:
     hibernate:
       ddl-auto: none
     open-in-view: false
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -45,3 +45,11 @@ token:
   access-expiration: 7200000 # 1000 * 60 * 60 * 2 = 2 hours
   refresh-expiration: 604800000 # 1000 * 60 * 60 * 24 * 7 = 7 days
   verified-expiration: 900000 # 1000 * 60 * 15 = 15 minutes
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY_ID}
+      secret-key: ${AWS_SECRET_ACCESS_KEY}
+    s3:
+      aws-region: ${AWS_REGION}
+      bucket-name: ${AWS_BUCKET_NAME}
