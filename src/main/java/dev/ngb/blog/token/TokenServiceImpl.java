@@ -26,7 +26,7 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public TokenInfo getTokenInfo(String token, TokenType tokenType) {
-        String keyPattern = String.join(":", tokenType.name(), "*", token);
+        String keyPattern = String.format(KEY_PATTERN, tokenType.name(), "*", token);
         Set<String> keys = redisTemplate.keys(keyPattern);
         if (keys == null || keys.isEmpty()) {
             throw new ExpiredException("Invalid or expired token");
@@ -52,7 +52,7 @@ public class TokenServiceImpl implements TokenService {
     private String saveUserToken(User user, HttpServletRequest request, TokenType tokenType, long expiration) {
         String token = UUID.randomUUID().toString();
         redisTemplate.opsForValue().set(
-                String.format(KEY_PATTERN, tokenType, user.getId().toString(), token),
+                String.format(KEY_PATTERN, tokenType.name(), user.getId().toString(), token),
                 IpHelper.getIpAddress(request),
                 expiration, TimeUnit.MILLISECONDS
         );
@@ -61,7 +61,7 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public void revokeAllUserTokens(User user) {
-        String keyPattern = String.format(KEY_PATTERN, TokenType.REFRESH, user.getId().toString(), "*");
+        String keyPattern = String.format(KEY_PATTERN, TokenType.REFRESH.name(), user.getId().toString(), "*");
         Set<String> refreshTokens = redisTemplate.keys(keyPattern);
         if (refreshTokens != null && !refreshTokens.isEmpty()) {
             refreshTokens.forEach(redisTemplate::delete);
@@ -71,6 +71,6 @@ public class TokenServiceImpl implements TokenService {
     @Override
     public void revokeRefreshToken(String refreshToken) throws ExpiredException {
         UUID userId = getTokenInfo(refreshToken, TokenType.REFRESH).getUserId();
-        redisTemplate.delete(String.format(KEY_PATTERN, TokenType.REFRESH, userId.toString(), refreshToken));
+        redisTemplate.delete(String.format(KEY_PATTERN, TokenType.REFRESH.name(), userId.toString(), refreshToken));
     }
 }
