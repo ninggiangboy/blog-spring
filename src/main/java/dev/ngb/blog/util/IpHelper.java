@@ -27,6 +27,7 @@ public class IpHelper {
     }
 
     public static String getIpAddress(HttpServletRequest request) {
+        if (request == null) return "Invalid IP";
         String forwarded = request.getHeader("X-FORWARDED-FOR");
         if (forwarded != null) {
             return "Invalid IP";
