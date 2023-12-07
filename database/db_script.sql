@@ -6,15 +6,15 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE IF NOT EXISTS blogs.users
 (
-    user_id         UUID PRIMARY KEY             DEFAULT uuid_generate_v4(),
-    username        VARCHAR(50) UNIQUE  NOT NULL,
-    email           VARCHAR(100) UNIQUE NOT NULL,
-    first_name      VARCHAR(50)         NOT NULL,
-    last_name       VARCHAR(50)         NOT NULL,
-    image_url       TEXT                         DEFAULT NULL,
-    hashed_password VARCHAR(255)        NOT NULL,
-    email_verified  BOOLEAN             NOT NULL DEFAULT FALSE,
-    is_blocked      BOOLEAN             NOT NULL DEFAULT FALSE
+    user_id           UUID PRIMARY KEY             DEFAULT uuid_generate_v4(),
+    username          VARCHAR(50) UNIQUE  NOT NULL,
+    email             VARCHAR(100) UNIQUE NOT NULL,
+    first_name        VARCHAR(50)         NOT NULL,
+    last_name         VARCHAR(50)         NOT NULL,
+    profile_image_url TEXT                         DEFAULT NULL,
+    hashed_password   VARCHAR(255)        NOT NULL,
+    email_verified    BOOLEAN             NOT NULL DEFAULT FALSE,
+    is_blocked        BOOLEAN             NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS blogs.roles
@@ -63,3 +63,75 @@ CREATE TABLE IF NOT EXISTS blogs.role_permission
 --     CONSTRAINT valid_token_type CHECK (token_type IN ('REFRESH', 'VERIFIED')),
 --     FOREIGN KEY (user_id) REFERENCES blogs.users (user_id) ON DELETE CASCADE
 -- );
+
+CREATE TABLE IF NOT EXISTS blogs.categories
+(
+    category_id   SERIAL PRIMARY KEY,
+    category_name VARCHAR(50) UNIQUE NOT NULL,
+    category_desc TEXT                        DEFAULT NULL,
+    parent_id     INTEGER                     DEFAULT NULL,
+    is_active     BOOLEAN            NOT NULL DEFAULT TRUE,
+    FOREIGN KEY (parent_id) REFERENCES blogs.categories (category_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS blogs.tags
+(
+    tag_id    SERIAL PRIMARY KEY,
+    tag_name  VARCHAR(50) UNIQUE NOT NULL,
+    is_active BOOLEAN            NOT NULL DEFAULT TRUE,
+    tag_desc  TEXT                        DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS blogs.series
+(
+    series_id   SERIAL PRIMARY KEY,
+    series_name VARCHAR(50) UNIQUE NOT NULL,
+    series_desc TEXT DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS blogs.posts
+(
+    post_id             SERIAL PRIMARY KEY,
+    author_id           INTEGER      NOT NULL,
+    series_id           INTEGER                  DEFAULT NULL,
+    category_id         INTEGER                  DEFAULT NULL,
+    post_title          VARCHAR(255) NOT NULL,
+    thumbnail_image_url TEXT                     DEFAULT NULL,
+    post_status         VARCHAR(10)  NOT NULL,
+    published_at        TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    slug                TEXT         NOT NULL,
+    FOREIGN KEY (author_id) REFERENCES blogs.authors (author_id) ON DELETE CASCADE,
+    FOREIGN KEY (series_id) REFERENCES blogs.series (series_id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES blogs.categories (category_id) ON DELETE CASCADE,
+    CONSTRAINT valid_status CHECK (post_status IN ('DRAFT', 'PENDING', 'PUBLISHED', 'DELETED'))
+);
+
+CREATE TABLE IF NOT EXISTS blogs.authors
+(
+    author_id   SERIAL PRIMARY KEY,
+    pseudonym   VARCHAR(50) NOT NULL,
+    user_id     UUID        NOT NULL,
+    description TEXT DEFAULT NULL,
+    FOREIGN KEY (user_id) REFERENCES blogs.users (user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS blogs.post_tag
+(
+    post_id INTEGER NOT NULL,
+    tag_id  INTEGER NOT NULL,
+    PRIMARY KEY (post_id, tag_id),
+    FOREIGN KEY (post_id) REFERENCES blogs.posts (post_id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES blogs.tags (tag_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS blogs.post_versions
+(
+    post_versions_id SERIAL PRIMARY KEY,
+    post_id          INTEGER NOT NULL,
+    content          TEXT    NOT NULL,
+    version_number   INTEGER NOT NULL,
+    created_at       TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    last_modified_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    FOREIGN KEY (post_id) REFERENCES blogs.posts (post_id) ON DELETE CASCADE,
+    UNIQUE (post_id, version_number)
+);
