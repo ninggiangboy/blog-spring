@@ -5,17 +5,15 @@ import dev.ngb.blog.user.User;
 import dev.ngb.blog.util.IpHelper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
 public class TokenServiceImpl implements TokenService {
-    private static final String USER_PREFIX = "USER_";
+    private static final String KEY_PATTERN = "%s:%s:%s";
     private final long refreshExpiration;
     private final long verifiedExpiration;
     private final RedisTemplate<String, String> redisTemplate;
@@ -28,24 +26,22 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public TokenInfo getTokenInfo(String token, TokenType tokenType) {
-        String key = tokenType.getRedisPrefix() + token;
-        String value = redisTemplate.opsForValue().get(key);
-        if (value == null) {
+        String keyPattern = String.join(":", tokenType.name(), "*", token);
+        Set<String> keys = redisTemplate.keys(keyPattern);
+        if (keys == null || keys.isEmpty()) {
             throw new ExpiredException("Invalid or expired token");
         }
-        String[] parts = value.split(" : ");
+        String key = keys.iterator().next();
+        String ipAddress = redisTemplate.opsForValue().get(key);
         return TokenInfo.builder()
-                .userId(UUID.fromString(parts[0]))
-                .ipAddress(parts[1])
+                .userId(UUID.fromString(key.split(":")[1]))
+                .ipAddress(ipAddress)
                 .build();
     }
 
     @Override
     public String generateRefreshToken(User user, HttpServletRequest request) {
-        String refreshToken = saveUserToken(user, request, TokenType.REFRESH, refreshExpiration);
-        String userKey = USER_PREFIX + TokenType.REFRESH.getRedisPrefix() + user.getId();
-        redisTemplate.opsForList().rightPush(userKey, refreshToken);
-        return refreshToken;
+        return saveUserToken(user, request, TokenType.REFRESH, refreshExpiration);
     }
 
     @Override
@@ -56,47 +52,29 @@ public class TokenServiceImpl implements TokenService {
     private String saveUserToken(User user, HttpServletRequest request, TokenType tokenType, long expiration) {
         String token = UUID.randomUUID().toString();
         redisTemplate.opsForValue().set(
-                tokenType.getRedisPrefix() + token,
-                user.getId() + " : " + IpHelper.getIpAddress(request),
+                String.format(KEY_PATTERN, tokenType, user.getId().toString(), token),
+                IpHelper.getIpAddress(request),
                 expiration, TimeUnit.MILLISECONDS
         );
         return token;
     }
 
-    @Scheduled(fixedRate = 1000 * 60 * 60 * 24) // Execute every day
-    public void removeExpiredTokens() {
-        Set<String> userKeys = redisTemplate.keys(USER_PREFIX + TokenType.REFRESH.getRedisPrefix() + "*");
-        if (userKeys != null) {
-            userKeys.forEach(this::removeExpiredTokensForUser);
-        }
-    }
-
-    private void removeExpiredTokensForUser(String userKey) {
-        List<String> refreshTokens = redisTemplate.opsForList().range(userKey, 0, -1);
-        if (refreshTokens != null) {
-            refreshTokens.forEach(refreshToken -> {
-                if (Boolean.FALSE.equals(redisTemplate.hasKey(TokenType.REFRESH.getRedisPrefix() + refreshToken))) {
-                    redisTemplate.opsForList().remove(userKey, 0, refreshToken);
+    @Override
+    public void revokeAllUserTokens(User user) {
+        String keyPattern = String.format(KEY_PATTERN, TokenType.REFRESH, user.getId().toString(), "*");
+        Set<String> refreshTokens = redisTemplate.keys(keyPattern);
+        if (refreshTokens != null && !refreshTokens.isEmpty()) {
+            refreshTokens.forEach(key -> {
+                if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+                    redisTemplate.delete(key);
                 }
             });
         }
     }
 
     @Override
-    public void revokeAllUserTokens(User user) {
-        String userKey = USER_PREFIX + TokenType.REFRESH.getRedisPrefix() + user.getId();
-        List<String> refreshTokens = redisTemplate.opsForList().range(userKey, 0, -1);
-        if (refreshTokens != null) {
-            refreshTokens.forEach(key -> redisTemplate.delete(TokenType.REFRESH.getRedisPrefix() + key));
-        }
-        redisTemplate.delete(userKey);
-    }
-
-    @Override
     public void revokeRefreshToken(String refreshToken) throws ExpiredException {
         UUID userId = getTokenInfo(refreshToken, TokenType.REFRESH).getUserId();
-        redisTemplate.delete(TokenType.REFRESH.getRedisPrefix() + refreshToken);
-        String userKey = USER_PREFIX + TokenType.REFRESH.getRedisPrefix() + userId;
-        redisTemplate.opsForList().remove(userKey, 0, refreshToken);
+        redisTemplate.delete(String.format(KEY_PATTERN, TokenType.REFRESH, userId.toString(), refreshToken));
     }
 }
