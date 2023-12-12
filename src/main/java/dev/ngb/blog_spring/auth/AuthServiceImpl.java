@@ -1,6 +1,7 @@
 package dev.ngb.blog_spring.auth;
 
 import dev.ngb.blog_spring.exception.NotFoundException;
+import dev.ngb.blog_spring.token.JwtService;
 import dev.ngb.blog_spring.token.TokenInfo;
 import dev.ngb.blog_spring.token.TokenService;
 import dev.ngb.blog_spring.token.TokenType;

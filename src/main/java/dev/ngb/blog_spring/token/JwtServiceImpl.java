@@ -1,8 +1,7 @@
-package dev.ngb.blog_spring.auth;
+package dev.ngb.blog_spring.token;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.ngb.blog_spring.token.TokenProperties;
 import dev.ngb.blog_spring.user.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

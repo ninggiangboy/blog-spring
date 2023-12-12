@@ -1,7 +1,7 @@
 package dev.ngb.blog_spring.security;
 
-import dev.ngb.blog_spring.auth.JwtService;
 import dev.ngb.blog_spring.exception.NotFoundException;
+import dev.ngb.blog_spring.token.JwtService;
 import dev.ngb.blog_spring.user.User;
 import dev.ngb.blog_spring.user.UserRepository;
 import jakarta.servlet.FilterChain;

@@ -1,4 +1,4 @@
-package dev.ngb.blog_spring.auth;
+package dev.ngb.blog_spring.token;
 
 import dev.ngb.blog_spring.user.User;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
