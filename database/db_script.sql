@@ -51,29 +51,6 @@ CREATE TABLE IF NOT EXISTS blogs.role_permission
     FOREIGN KEY (permission_id) REFERENCES blogs.permissions (permission_id) ON DELETE CASCADE
 );
 
--- CREATE TABLE IF NOT EXISTS blogs.tokens
--- (
---     token_id   SERIAL PRIMARY KEY,
---     user_id    UUID                     NOT NULL,
---     token_type VARCHAR(10)              NOT NULL,
---     value      VARCHAR(255)             NOT NULL,
---     is_revoked BOOLEAN                  NOT NULL DEFAULT FALSE,
---     expired_at TIMESTAMP WITH TIME ZONE NOT NULL,
---     ip_address VARCHAR(50)              NOT NULL,
---     CONSTRAINT valid_token_type CHECK (token_type IN ('REFRESH', 'VERIFIED')),
---     FOREIGN KEY (user_id) REFERENCES blogs.users (user_id) ON DELETE CASCADE
--- );
-
-CREATE TABLE IF NOT EXISTS blogs.categories
-(
-    category_id   SERIAL PRIMARY KEY,
-    category_name VARCHAR(50) UNIQUE NOT NULL,
-    category_desc TEXT                        DEFAULT NULL,
-    parent_id     INTEGER                     DEFAULT NULL,
-    is_active     BOOLEAN            NOT NULL DEFAULT TRUE,
-    FOREIGN KEY (parent_id) REFERENCES blogs.categories (category_id) ON DELETE CASCADE
-);
-
 CREATE TABLE IF NOT EXISTS blogs.tags
 (
     tag_id    SERIAL PRIMARY KEY,
@@ -86,7 +63,27 @@ CREATE TABLE IF NOT EXISTS blogs.series
 (
     series_id   SERIAL PRIMARY KEY,
     series_name VARCHAR(50) UNIQUE NOT NULL,
-    series_desc TEXT DEFAULT NULL
+    is_active   BOOLEAN            NOT NULL DEFAULT TRUE,
+    series_desc TEXT                        DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS blogs.categories
+(
+    category_id        SERIAL PRIMARY KEY,
+    category_name      VARCHAR(50) NOT NULL,
+    is_active          BOOLEAN     NOT NULL DEFAULT TRUE,
+    category_desc      TEXT                 DEFAULT NULL,
+    parent_category_id INTEGER              DEFAULT NULL,
+    FOREIGN KEY (parent_category_id) REFERENCES blogs.categories (category_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS blogs.authors
+(
+    author_id        SERIAL PRIMARY KEY,
+    author_pseudonym VARCHAR(50) NOT NULL,
+    user_id          UUID        NOT NULL,
+    author_desc      TEXT DEFAULT NULL,
+    FOREIGN KEY (user_id) REFERENCES blogs.users (user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS blogs.posts
@@ -103,16 +100,7 @@ CREATE TABLE IF NOT EXISTS blogs.posts
     FOREIGN KEY (author_id) REFERENCES blogs.authors (author_id) ON DELETE CASCADE,
     FOREIGN KEY (series_id) REFERENCES blogs.series (series_id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES blogs.categories (category_id) ON DELETE CASCADE,
-    CONSTRAINT valid_status CHECK (post_status IN ('DRAFT', 'PENDING', 'PUBLISHED', 'DELETED'))
-);
-
-CREATE TABLE IF NOT EXISTS blogs.authors
-(
-    author_id   SERIAL PRIMARY KEY,
-    pseudonym   VARCHAR(50) NOT NULL,
-    user_id     UUID        NOT NULL,
-    description TEXT DEFAULT NULL,
-    FOREIGN KEY (user_id) REFERENCES blogs.users (user_id) ON DELETE CASCADE
+    CONSTRAINT valid_status CHECK (post_status IN ('DRAFT', 'PENDING', 'PUBLISHED', 'ARCHIVED'))
 );
 
 CREATE TABLE IF NOT EXISTS blogs.post_tag
@@ -135,3 +123,40 @@ CREATE TABLE IF NOT EXISTS blogs.post_versions
     FOREIGN KEY (post_id) REFERENCES blogs.posts (post_id) ON DELETE CASCADE,
     UNIQUE (post_id, version_number)
 );
+
+
+
+INSERT INTO blogs.tags (tag_name, tag_desc)
+VALUES ('Python',
+        'Python is a programming language that lets you work quickly and integrate systems more effectively.');
+INSERT INTO blogs.tags (tag_name, tag_desc)
+VALUES ('Java', 'Java is a programming language and computing platform first released by Sun Microsystems in 1995.');
+INSERT INTO blogs.tags (tag_name, tag_desc)
+VALUES ('JavaScript', 'JavaScript is a programming language that conforms to the ECMAScript specification.');
+INSERT INTO blogs.tags (tag_name, tag_desc)
+VALUES ('C++',
+        'C++ is a general-purpose programming language created by Bjarne Stroustrup as an extension of the C programming language, or "C with Classes".');
+INSERT INTO blogs.tags (tag_name, tag_desc)
+VALUES ('C#',
+        'C# is a general-purpose, multi-paradigm programming language encompassing strong typing, lexically scoped, imperative, declarative, functional, generic, object-oriented, and component-oriented programming disciplines.');
+INSERT INTO blogs.tags (tag_name, tag_desc)
+VALUES ('PHP', 'PHP is a general-purpose scripting language especially suited to web development.');
+
+
+INSERT INTO blogs.categories (category_name, category_desc, parent_category_id)
+VALUES ('Programming',
+        'Programming is the process of creating a set of instructions that tell a computer how to perform a task.',
+        NULL);
+INSERT INTO blogs.categories (category_name, category_desc, parent_category_id)
+VALUES ('Web Development',
+        'Web development is the work involved in developing a Web site for the Internet or an intranet.', 1);
+INSERT INTO blogs.categories (category_name, category_desc, parent_category_id)
+VALUES ('Mobile Development',
+        'Mobile app development is the act or process by which a mobile app is developed for mobile devices, such as personal digital assistants, enterprise digital assistants or mobile phones.',
+        2);
+INSERT INTO blogs.categories (category_name, category_desc, parent_category_id)
+VALUES ('Desktop Development',
+        'Desktop development is the act or process by which a desktop app is developed for desktop devices, such as personal computers, laptops, etc.',
+        1);
+INSERT INTO blogs.categories (category_name, category_desc, parent_category_id)
+VALUES ('Game Development', 'Game development is the process of creating a video game.', 1);
