@@ -56,6 +56,8 @@ public class ApplicationConfig {
         modelMapper.addConverter(trimConverter);
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
         modelMapper.getConfiguration().setPropertyCondition(Conditions.isNotNull());
+        modelMapper.getConfiguration().setAmbiguityIgnored(true);
+        modelMapper.getConfiguration().setFieldMatchingEnabled(true);
         return modelMapper;
     }
 

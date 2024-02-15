@@ -1,5 +1,7 @@
 package dev.ngb.blog_spring.auth;
 
+import dev.ngb.blog_spring.auth.domain.AuthRequest;
+import dev.ngb.blog_spring.auth.domain.AuthResponse;
 import dev.ngb.blog_spring.base.BaseController;
 import dev.ngb.blog_spring.base.ResultResponse;
 import dev.ngb.blog_spring.user.User;
@@ -39,9 +41,11 @@ public class AuthController extends BaseController {
     @DeleteMapping("/auth/logout")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ResultResponse> logout(
-            @RequestParam("refresh_token") String refreshToken
+            @RequestParam("refresh_token") String refreshToken,
+            Authentication authentication
     ) {
-        authService.logout(refreshToken);
+        User user = (User) authentication.getPrincipal();
+        authService.logout(refreshToken, user);
         return buildResponse("Logout successfully");
     }
 

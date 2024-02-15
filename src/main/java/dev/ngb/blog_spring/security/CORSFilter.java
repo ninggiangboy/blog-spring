@@ -1,6 +1,6 @@
 package dev.ngb.blog_spring.security;
 
-import dev.ngb.blog_spring.cors.CorsProperties;
+import dev.ngb.blog_spring.config.cors.CorsProperties;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.util.Map;
 
 @Component
-@Slf4j
 public class CORSFilter extends OncePerRequestFilter {
 
     private final Map<String, String> corsHeader;

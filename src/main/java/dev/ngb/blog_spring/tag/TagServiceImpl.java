@@ -21,6 +21,7 @@ public class TagServiceImpl implements TagService {
     private static final String TAG_KEY = "tags";
     private final TagRepository tagRepository;
     private final ModelMapper mapper;
+
 //    private final RedisTemplate<String, Object> redisTemplate;
 //    private final ObjectMapper objectMapper;
 

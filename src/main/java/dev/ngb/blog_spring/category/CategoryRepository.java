@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Set;
 
 public interface CategoryRepository extends JpaRepository<Category, Integer> {
+
+    <T> List<T> findAllBy(Class<T> type);
+
     <T> List<T> findAllByIsActiveIsTrueAndParentIsNull(Class<T> type);
 
     <T> Set<T> findAllByIsActiveIsTrueAndParent_Id(Class<T> type, Integer categoryId);

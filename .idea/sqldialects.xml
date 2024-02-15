@@ -3,7 +3,5 @@
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/database/db_script.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/database/test_script.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/src/main/java/dev/ngb/blog_spring/tag/TagServiceImpl.java" dialect="GenericSQL" />
-    <file url="PROJECT" dialect="PostgreSQL" />
   </component>
 </project>

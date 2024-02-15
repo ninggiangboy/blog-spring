@@ -3,7 +3,10 @@ package dev.ngb.blog_spring.register;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.ngb.blog_spring.constant.ValidationRegex;
 import dev.ngb.blog_spring.user.User;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Value;
 
 import java.io.Serializable;
@@ -23,18 +26,18 @@ public class RegisterRequest implements Serializable {
     @NotBlank(message = "Email cannot be blank")
     String email;
     @NotNull(message = "First name cannot be null")
-    @Size(min = 3, max = 50, message = "First name must be between 3 and 50 characters")
+    @Size(min = 1, max = 50, message = "First name must be between 3 and 50 characters")
     @NotBlank(message = "First name cannot be blank")
     @JsonProperty("first_name")
     String firstName;
     @NotNull(message = "Last name cannot be null")
-    @Size(min = 3, max = 50, message = "Last name must be between 3 and 50 characters")
+    @Size(min = 1, max = 50, message = "Last name must be between 3 and 50 characters")
     @NotBlank(message = "Last name cannot be blank")
     @JsonProperty("last_name")
     String lastName;
     @NotNull(message = "Password cannot be null")
     @Size(min = 8, message = "Password must be at least 8 characters long")
-    @Pattern(regexp = ValidationRegex.PASSWORD_REGEX, message = "The password must have at least one uppercase letter, one lowercase letter, and one numeric digit")
+//    @Pattern(regexp = ValidationRegex.PASSWORD_REGEX, message = "The password must have at least one uppercase letter, one lowercase letter, and one numeric digit")
     @NotBlank(message = "Password cannot be blank")
     String password;
 }

@@ -1,6 +1,6 @@
 package dev.ngb.blog_spring.tag;
 
-import dev.ngb.blog_spring.blog.Post;
+import dev.ngb.blog_spring.post.Post;
 import jakarta.persistence.*;
 import lombok.*;
 

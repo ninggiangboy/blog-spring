@@ -21,12 +21,22 @@ public class CategoryServiceImpl implements CategoryService {
     private final ModelMapper mapper;
 
     @Override
+//    @Cacheable("categories")
     public List<CategoryInfoWithChildren> getAvailableCategories() {
         List<CategoryInfoWithChildren> roots = categoryRepository
                 .findAllByIsActiveIsTrueAndParentIsNull(CategoryProjection.class)
                 .stream().map(element -> mapper.map(element, CategoryInfoWithChildren.class)).toList();
         roots.forEach(this::fillChildren);
         return roots;
+    }
+
+    private void fillChildren(CategoryInfoWithChildren category) {
+        Set<CategoryInfoWithChildren> children = categoryRepository.findAllByIsActiveIsTrueAndParent_Id(CategoryProjection.class, category.getId())
+                .stream().map(element -> mapper.map(element, CategoryInfoWithChildren.class)).collect(Collectors.toSet());
+        if (!children.isEmpty()) {
+            category.setChildren(children);
+            children.forEach(this::fillChildren);
+        }
     }
 
     @Override
@@ -88,7 +98,7 @@ public class CategoryServiceImpl implements CategoryService {
         if (ids.size() != categoryRepository.count()) {
             throw new BadRequestException("Invalid categories request");
         }
-        Set<Integer> allIds = categoryRepository.findAll().stream().map(Category::getId).collect(Collectors.toSet());
+        Set<Integer> allIds = categoryRepository.findAllBy(CategoryIdProjection.class).stream().map(CategoryIdProjection::getId).collect(Collectors.toSet());
         if (!allIds.containsAll(ids)) {
             throw new BadRequestException("Invalid category in request");
         }
@@ -112,15 +122,6 @@ public class CategoryServiceImpl implements CategoryService {
                 }
         );
         return ids;
-    }
-
-    private void fillChildren(CategoryInfoWithChildren category) {
-        Set<CategoryInfoWithChildren> children = categoryRepository.findAllByIsActiveIsTrueAndParent_Id(CategoryProjection.class, category.getId())
-                .stream().map(element -> mapper.map(element, CategoryInfoWithChildren.class)).collect(Collectors.toSet());
-        if (!children.isEmpty()) {
-            category.setChildren(children);
-            children.forEach(this::fillChildren);
-        }
     }
 
     private Category getCategoryById(Integer id) {

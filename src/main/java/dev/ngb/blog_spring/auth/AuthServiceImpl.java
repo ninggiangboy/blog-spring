@@ -1,5 +1,7 @@
 package dev.ngb.blog_spring.auth;
 
+import dev.ngb.blog_spring.auth.domain.AuthRequest;
+import dev.ngb.blog_spring.auth.domain.AuthResponse;
 import dev.ngb.blog_spring.exception.NotFoundException;
 import dev.ngb.blog_spring.token.JwtService;
 import dev.ngb.blog_spring.token.TokenInfo;
@@ -34,7 +36,7 @@ public class AuthServiceImpl implements AuthService {
                         authRequest.getUsername(),
                         authRequest.getPassword()));
         User user = (User) authentication.getPrincipal();
-        String jwtToken = jwtService.generateToken(user);
+        String jwtToken = jwtService.generateToken(user, request);
         String refreshToken = tokenService.generateRefreshToken(user, request);
         return AuthResponse.builder()
                 .accessToken(jwtToken)
@@ -46,20 +48,26 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public AuthResponse refreshToken(String refreshToken, HttpServletRequest request) {
         TokenInfo token = tokenService.getTokenInfo(refreshToken, TokenType.REFRESH);
-        if (!IpUtil.isSameLocation(IpUtil.getIpAddress(request), token.getIpAddress())) {
+        if (!IpUtil.isSameLocation(IpUtil.getIpAddress(request), token.getIpAddress())
+                || isSameDevice(request.getHeader("User-Agent"), token.getUserAgent())
+        ) {
             throw new AccessDeniedException("Your location is not allowed to refresh token");
         }
         User user = userRepository.findById(token.getUserId()).orElseThrow(() -> new NotFoundException("User not found"));
-        String accessToken = jwtService.generateToken(user);
+        String accessToken = jwtService.generateToken(user, request);
         return AuthResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
     }
 
+    private boolean isSameDevice(String header, String userAgent) {
+        return header.equalsIgnoreCase(userAgent);
+    }
+
     @Override
-    public void logout(String refreshToken) {
-        tokenService.revokeRefreshToken(refreshToken);
+    public void logout(String refreshToken, User user) {
+        tokenService.revokeRefreshToken(refreshToken, user);
     }
 
     @Override

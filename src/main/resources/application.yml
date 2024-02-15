@@ -61,3 +61,6 @@ cloud:
     s3:
       aws-region: ${AWS_REGION}
       bucket-name: ${AWS_BUCKET_NAME}
+springdoc:
+  api-docs:
+    path: /api-docs

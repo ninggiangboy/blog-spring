@@ -1,6 +1,5 @@
 package dev.ngb.blog_spring.storage;
 
-import dev.ngb.blog_spring.aws.S3Service;
 import dev.ngb.blog_spring.exception.FileException;
 import dev.ngb.blog_spring.user.User;
 import lombok.RequiredArgsConstructor;

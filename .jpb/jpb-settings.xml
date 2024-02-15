@@ -11,7 +11,7 @@
     <persistence-units>
       <persistence-unit name="Default" defaultSearchScope="Project">
         <packages>
-          <package value="dev.ngb.blog" />
+          <package value="dev.ngb.blog_spring" />
         </packages>
       </persistence-unit>
     </persistence-units>

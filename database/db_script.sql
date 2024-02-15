@@ -160,3 +160,24 @@ VALUES ('Desktop Development',
         1);
 INSERT INTO blogs.categories (category_name, category_desc, parent_category_id)
 VALUES ('Game Development', 'Game development is the process of creating a video game.', 1);
+
+
+INSERT INTO blogs.series (series_name, series_desc)
+VALUES ('Python',
+        'Python is a programming language that lets you work quickly and integrate systems more effectively.');
+INSERT INTO blogs.series (series_name, series_desc)
+VALUES ('Java', 'Java is a programming language and computing platform first released by Sun Microsystems in 1995.');
+INSERT INTO blogs.series (series_name, series_desc)
+VALUES ('JavaScript', 'JavaScript is a programming language that conforms to the ECMAScript specification.');
+
+-- INSERT INTO blogs.authors (author_pseudonym, user_id, author_desc)
+-- VALUES ('John Doe', '84484015-9e15-440a-9ee2-54ff3ca3899f', 'John Doe is a software engineer.');
+--
+--
+-- INSERT INTO blogs.posts (author_id, series_id, category_id, post_title, thumbnail_image_url, post_status, published_at,
+--                          slug)
+-- VALUES (1, 1, 1, 'Python Tutorial', 'https://i.imgur.com/7bMqy.jpg', 'PUBLISHED', '2020-01-01 00:00:00',
+--         'python-tutorial');
+--
+-- INSERT INTO blogs.post_tag (post_id, tag_id)
+-- VALUES (2, 1);

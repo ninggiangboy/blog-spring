@@ -37,7 +37,7 @@ public class CategoryController extends BaseController {
     @PostMapping("/category")
     public ResponseEntity<ResultResponse> createCategory(@Valid @RequestBody NewCategoryRequest newCategoryRequest) {
         Category createdCategory = categoryService.createCategory(newCategoryRequest);
-        CategoryInfoWithChildren categoryInfo = mapper.map(createdCategory, CategoryInfoWithChildren.class);
+        CategoryIdProjection categoryInfo = mapper.map(createdCategory, CategoryIdProjection.class);
         return buildResponse("Created category", categoryInfo);
     }
 
@@ -47,14 +47,14 @@ public class CategoryController extends BaseController {
             @Valid @RequestBody UpdateCategoryRequest updateCategoryRequest
     ) {
         Category updatedCategory = categoryService.updateCategory(id, updateCategoryRequest);
-        CategoryInfo categoryInfo = mapper.map(updatedCategory, CategoryInfo.class);
+        CategoryIdProjection categoryInfo = mapper.map(updatedCategory, CategoryIdProjection.class);
         return buildResponse("Updated category", categoryInfo);
     }
 
     @DeleteMapping("/category/{id}")
     public ResponseEntity<ResultResponse> deleteCategory(@PathVariable Integer id) {
         Category deletedCategory = categoryService.deleteCategory(id);
-        CategoryInfo categoryInfo = mapper.map(deletedCategory, CategoryInfo.class);
+        CategoryIdProjection categoryInfo = mapper.map(deletedCategory, CategoryIdProjection.class);
         return buildResponse("Deleted category", categoryInfo);
     }
 }
