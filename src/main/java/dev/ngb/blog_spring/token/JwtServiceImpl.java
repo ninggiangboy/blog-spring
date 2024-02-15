@@ -9,6 +9,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
@@ -57,8 +58,9 @@ public class JwtServiceImpl implements JwtService {
         }
     }
 
-    public String generateToken(User user) {
-        return generateToken(getExtraClaims(user), user);
+    @Override
+    public String generateToken(User user, HttpServletRequest request) {
+        return generateToken(getExtraClaims(user, request), user);
     }
 
     private String generateToken(Map<String, Object> extraClaims, User user) {
@@ -77,12 +79,23 @@ public class JwtServiceImpl implements JwtService {
                 .compact();
     }
 
-    public boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+    @Override
+    public boolean isTokenValid(String token, HttpServletRequest request) {
+        return isTokenExpired(token) && isTokenFromIp(token, request) && isTokenFromUserAgent(token, request);
     }
 
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+    private boolean isTokenExpired(String token) {
+        return extractClaim(token, Claims::getExpiration).before(new Date());
+    }
+
+    private boolean isTokenFromUserAgent(String token, HttpServletRequest request) {
+        String ua = extractClaim(token, claims -> claims.get("ua", String.class));
+        return ua.equalsIgnoreCase(request.getHeader("User-Agent"));
+    }
+
+    private boolean isTokenFromIp(String token, HttpServletRequest request) {
+        String ip = extractClaim(token, claims -> claims.get("ip", String.class));
+        return ip.equals(request.getRemoteAddr());
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -103,14 +116,16 @@ public class JwtServiceImpl implements JwtService {
         }
     }
 
-    private Map<String, Object> getExtraClaims(User user) {
+    private Map<String, Object> getExtraClaims(User user, HttpServletRequest request) {
         Set<String> authorities = user.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
         Map<String, Object> extraClaims = new HashMap<>();
         try {
-            String s = objectMapper.writeValueAsString(authorities);
-            String aut = Encoders.BASE64.encode(s.getBytes());
+            String auth = objectMapper.writeValueAsString(authorities);
+            String aut = Encoders.BASE64.encode(auth.getBytes());
             extraClaims.put("aut", aut);
+            extraClaims.put("ip", request.getRemoteAddr());
+            extraClaims.put("ua", request.getHeader("User-Agent"));
             extraClaims.put("email", user.getEmail());
             extraClaims.put("given_name", user.getFirstName());
             extraClaims.put("family_name", user.getLastName());

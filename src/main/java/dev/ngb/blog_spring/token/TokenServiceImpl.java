@@ -13,7 +13,8 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class TokenServiceImpl implements TokenService {
-    private static final String KEY_PATTERN = "%s:%s:%s";
+    private static final String KEY_PATTERN = "%s::%s::%s";
+    private static final String VALUE_PATTERN = "%s::%s";
     private final long refreshExpiration;
     private final long verifiedExpiration;
     private final RedisTemplate<String, String> redisTemplate;
@@ -32,10 +33,11 @@ public class TokenServiceImpl implements TokenService {
             throw new ExpiredException("Invalid or expired token");
         }
         String key = keys.iterator().next();
-        String ipAddress = redisTemplate.opsForValue().get(key);
+        String[] value = redisTemplate.opsForValue().get(key).split("::");
         return TokenInfo.builder()
-                .userId(UUID.fromString(key.split(":")[1]))
-                .ipAddress(ipAddress)
+                .userId(UUID.fromString(key.split("::")[1]))
+                .ipAddress(value[0])
+                .userAgent(value[1])
                 .build();
     }
 
@@ -53,7 +55,7 @@ public class TokenServiceImpl implements TokenService {
         String token = UUID.randomUUID().toString();
         redisTemplate.opsForValue().set(
                 String.format(KEY_PATTERN, tokenType.name(), user.getId().toString(), token),
-                IpUtil.getIpAddress(request),
+                String.format(VALUE_PATTERN, IpUtil.getIpAddress(request), request.getHeader("User-Agent")),
                 expiration, TimeUnit.MILLISECONDS
         );
         return token;
@@ -69,8 +71,11 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
-    public void revokeRefreshToken(String refreshToken) throws ExpiredException {
+    public void revokeRefreshToken(String refreshToken, User user) throws ExpiredException {
         UUID userId = getTokenInfo(refreshToken, TokenType.REFRESH).getUserId();
-        redisTemplate.delete(String.format(KEY_PATTERN, TokenType.REFRESH.name(), userId.toString(), refreshToken));
+        if (!userId.equals(user.getId())) {
+            throw new ExpiredException("Invalid refresh token");
+        }
+        redisTemplate.delete(String.format(KEY_PATTERN, TokenType.REFRESH.name(), userId, refreshToken));
     }
 }

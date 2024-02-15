@@ -1,6 +1,5 @@
 package dev.ngb.blog_spring.validation;
 
-import dev.ngb.blog_spring.constant.ValidationRegex;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 

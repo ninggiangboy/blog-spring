@@ -12,4 +12,5 @@ import java.util.UUID;
 public class TokenInfo {
     private UUID userId;
     private String ipAddress;
+    private String userAgent;
 }

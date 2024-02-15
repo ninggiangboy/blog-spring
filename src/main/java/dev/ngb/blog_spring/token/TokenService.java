@@ -10,7 +10,7 @@ public interface TokenService {
 
     void revokeAllUserTokens(User user);
 
-    void revokeRefreshToken(String refreshToken);
+    void revokeRefreshToken(String refreshToken, User user);
 
     TokenInfo getTokenInfo(String token, TokenType tokenType);
 }

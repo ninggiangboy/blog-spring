@@ -11,6 +11,15 @@ services:
       - POSTGRES_USER=${DB_USERNAME}
     ports:
       - ${DB_PORT}:5432
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:7.4
+    restart: always
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+    ports:
+      - ${PGADMIN_PORT}:80
   redis:
     container_name: redis_cache
     image: redis:7.2.3

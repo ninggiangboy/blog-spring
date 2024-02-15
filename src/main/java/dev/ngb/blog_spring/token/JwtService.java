@@ -1,6 +1,7 @@
 package dev.ngb.blog_spring.token;
 
 import dev.ngb.blog_spring.user.User;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.Collection;
@@ -11,7 +12,7 @@ public interface JwtService {
 
     Collection<SimpleGrantedAuthority> extractAuthorities(String token);
 
-    String generateToken(User user);
+    String generateToken(User user, HttpServletRequest request);
 
-    boolean isTokenExpired(String token);
+    boolean isTokenValid(String token, HttpServletRequest request);
 }
